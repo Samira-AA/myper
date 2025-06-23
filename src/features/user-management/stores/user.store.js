@@ -30,18 +30,18 @@ export const useUserStore = defineStore('userStore',{
 
     actions:{
         async getUsers() {
-
             this.loading = true;
             this.error = null;
 
             try{
                 const userApiService = new UserApiService();
                 const response = await userApiService.getUsers();
+                console.log('API Response:', response.data);
                 this.users = response.data;
             }catch(error){
                 this.error = 'Error fetching users: ' + error.message;
                 console.log('Error fetching users:', error);
-            }finally {
+            } finally {
                 this.loading = false;
             }
         },
