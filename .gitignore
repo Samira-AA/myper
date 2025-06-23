@@ -23,5 +23,5 @@ dist-ssr
 *.sln
 *.sw?
 
-# Ignorar archivo de redirección de Netlify
+
 public/_redirects
