@@ -9,7 +9,7 @@ const http = axios.create({
 });
 
 export class UserApiService {
-    getUsers() {
-        return http.get('/users');
+    async getUsers() {
+        return await http.get('/users');
     }
 }

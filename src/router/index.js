@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import UserManagementPage from "../features/user-management/pages/user.page.vue";
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -11,7 +12,7 @@ const router = createRouter({
         {
             path: '/users',
             name: 'users',
-            component: ' ',
+            component: UserManagementPage,
             meta: {
                 title: 'User Management'
             }
@@ -25,10 +26,5 @@ const router = createRouter({
     ]
 })
 
-
-router.beforeEach((to, from, next) => {
-    document.title = to.meta.title ? `${to.meta.title} | User CRUD` : 'User CRUD'
-    next()
-})
 
 export default router
