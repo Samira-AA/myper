@@ -12,7 +12,7 @@ export default {
     AppLoader
   },
   emits: ['edit'],
-  setup(_, { emit }) {
+  setup(props, { emit }) {
     const userStore = useUserStore();
     const toast = useToast();
 

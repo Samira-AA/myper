@@ -24,6 +24,18 @@ export default {
       phone: ''
     });
 
+    // reset form to initial state
+    const resetForm = () => {
+      form.value = {
+        id: null,
+        name: '',
+        username: '',
+        email: '',
+        phone: ''
+      };
+      emailError.value = false;
+    };
+
     // email validation state
     const emailError = ref(false);
 
@@ -42,17 +54,6 @@ export default {
     // Validate simple email format
     const isValidEmail = (email) => /\S+@\S+\.\S+/.test(email);
 
-    // Reset form to initial state
-    const resetForm = () => {
-      form.value = {
-        id: null,
-        name: '',
-        username: '',
-        email: '',
-        phone: ''
-      };
-      emailError.value = false;
-    };
 
     // submit form data
     const handleSubmit = () => {
@@ -81,12 +82,18 @@ export default {
       resetForm();
     };
 
+    // emit update:visible event when dialog is closed
+    const handleUpdateVisible = (value) => {
+      emit('update:visible', value);
+    };
+
     return {
       form,
       emailError,
       isEditMode,
       handleSubmit,
-      closeDialog
+      closeDialog,
+      handleUpdateVisible
     };
   }
 };
@@ -95,11 +102,11 @@ export default {
 <template>
   <Modal
       :visible="visible"
-      @update:visible="value => emit('update:visible', value)"
+      @update:visible="handleUpdateVisible"
       :header="isEditMode ? 'Edit User' : 'New User'"
       @hide="closeDialog"
   >
-    <form @submit.prevent="handleSubmit" class="flex flex-col gap-4">
+    <form @submit.prevent="handleSubmit">
 
       <div class="input-group">
         <label for="name">Name</label>

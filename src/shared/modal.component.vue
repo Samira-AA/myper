@@ -11,13 +11,20 @@ export default {
   },
   emits: ['update:visible', 'hide'],
   setup(props, { emit }) {
+    // emit update when dialog is manually closed or canceled
     const closeDialog = () => {
       emit('update:visible', false);
       emit('hide');
     };
 
+    // handler for the update:visible event
+    const handleUpdateVisible = (value) => {
+      emit('update:visible', value);
+    };
+
     return {
-      closeDialog
+      closeDialog,
+      handleUpdateVisible
     };
   }
 };
@@ -26,7 +33,7 @@ export default {
 <template>
   <PvDialog
       :visible="visible"
-      @update:visible="value => emit('update:visible', value)"
+      @update:visible="handleUpdateVisible"
       :header="header"
       modal
       class="modal"
