@@ -6,7 +6,8 @@ export const useUserStore = defineStore('userStore',{
     state:() => ({
         users: [], //user list
         loading: false, // loading state for UI
-        error: null // error state for UI
+        error: null, // error state for UI
+        currentUser: null // currently selected user for editing
     }),
 
     getters:{
@@ -46,18 +47,18 @@ export const useUserStore = defineStore('userStore',{
             }
         },
 
-        addUser(userData){
+        addUser(userData) {
             if (!userData.email.includes('@')) {
                 throw new Error('Invalid email');
             }
             const id = this.getNextId;
-            const newUser = new User({
+            const newUser = new User(
                 id,
-                name: userData.name,
-                username: userData.username,
-                email: userData.email,
-                phone: userData.phone
-            });
+                userData.name,
+                userData.username,
+                userData.email,
+                userData.phone
+            );
             this.users.push(newUser);
             return newUser;
         },
@@ -66,13 +67,24 @@ export const useUserStore = defineStore('userStore',{
             const userPosition = this.users.findIndex(u => u.id === updatedUserData.id);
 
             if (userPosition >= 0) {
-                this.users[userPosition] = new User(updatedUserData);
+                this.users[userPosition] = new User(
+                    updatedUserData.id,
+                    updatedUserData.name,
+                    updatedUserData.username,
+                    updatedUserData.email,
+                    updatedUserData.phone
+                );
             }
         },
 
         deleteUser(userId) {
             this.users = this.users.filter(user => user.id !== userId);
-        }
+        },
+
+        setCurrentUser(user) {
+            this.currentUser = user;
+        },
+
 
     }
 

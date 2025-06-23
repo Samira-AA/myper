@@ -2,14 +2,17 @@
 import { useUserStore } from '../stores/user.store.js';
 import { useConfirm } from 'primevue/useconfirm';
 import { useToast } from 'primevue/usetoast';
-import { onMounted } from 'vue';
+import {onMounted, ref} from 'vue';
+import UserForm from "./user-form.component.vue";
 
 export default {
   name: 'UserTable',
+  components: {UserForm},
   setup() {
     const userStore = useUserStore();
     const confirm = useConfirm();
     const toast = useToast();
+    const formVisible = ref(false);
 
     onMounted(() => {
       userStore.getUsers();
@@ -17,8 +20,15 @@ export default {
     });
 
     const handleEdit = (user) => {
-      //userStore.setCurrentUser(user);
+      userStore.setCurrentUser(user);
+      formVisible.value = true;
     };
+
+    const openCreateForm = () => {
+      userStore.setCurrentUser(null);
+      formVisible.value = true;
+    };
+
 
     const handleDelete = (userId) => {
       confirm.require({
@@ -39,8 +49,9 @@ export default {
 
     return {
       userStore,
-
+      formVisible,
       handleEdit,
+      openCreateForm,
       handleDelete
     };
   },
@@ -48,6 +59,11 @@ export default {
 </script>
 
 <template>
+
+  <PvButton label="New user" icon="pi pi-plus" class="mb-3" @click="openCreateForm" />
+  <UserForm v-model:visible="formVisible" />
+
+
   <PvCard class="user-table-card">
     <template #title>List of Users</template>
     <template #content>
@@ -88,7 +104,6 @@ export default {
                   text
                   rounded
                   @click="handleEdit(data)"
-                  v-tooltip.top="'Edit user'"
               />
               <PvButton
                   icon="pi pi-trash"
@@ -96,7 +111,6 @@ export default {
                   text
                   rounded
                   @click="handleDelete(data.id)"
-                  v-tooltip.top="'Delete user'"
               />
             </div>
           </template>
