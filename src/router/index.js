@@ -11,7 +11,7 @@ const router = createRouter({
         {
             path: '/users',
             name: 'users',
-            component: '',
+            component: ' ',
             meta: {
                 title: 'User Management'
             }
