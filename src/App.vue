@@ -1,5 +1,4 @@
-<script setup>
-import UserTable from "./features/user-management/components/user-table.component.vue";
+<script>
 </script>
 
 <template>

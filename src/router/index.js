@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import userTableComponent from "../features/user-management/components/user-table.component.vue";
+import UserManagementPage from "../features/user-management/pages/user.page.vue";
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -12,7 +12,7 @@ const router = createRouter({
         {
             path: '/users',
             name: 'users',
-            component: userTableComponent,
+            component: UserManagementPage,
             meta: {
                 title: 'User Management'
             }

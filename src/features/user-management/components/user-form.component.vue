@@ -2,9 +2,11 @@
 import { ref, watch, computed } from 'vue';
 import { useUserStore } from '../stores/user.store.js';
 import { useToast } from 'primevue/usetoast';
+import Modal from '../../../shared/modal.component.vue';
 
 export default {
   name: 'UserForm',
+  components: { Modal },
   props: {
     visible: Boolean
   },
@@ -13,6 +15,7 @@ export default {
     const userStore = useUserStore();
     const toast = useToast();
 
+    // form data
     const form = ref({
       id: null,
       name: '',
@@ -21,8 +24,25 @@ export default {
       phone: ''
     });
 
+    // email validation state
     const emailError = ref(false);
 
+    // determine if we are editing an existing user
+    const isEditMode = computed(() => !!userStore.currentUser);
+
+    // fill the form if there's a user for editing, if not, reset the form and create
+    watch(() => userStore.currentUser, (user) => {
+      if (user) {
+        form.value = { ...user };
+      } else {
+        resetForm();
+      }
+    }, { immediate: true });
+
+    // Validate simple email format
+    const isValidEmail = (email) => /\S+@\S+\.\S+/.test(email);
+
+    // Reset form to initial state
     const resetForm = () => {
       form.value = {
         id: null,
@@ -34,111 +54,101 @@ export default {
       emailError.value = false;
     };
 
-    const isEditMode = computed(() => !!userStore.currentUser);
-
-    watch(
-        () => userStore.currentUser,
-        (user) => {
-          if (user) {
-            form.value = { ...user };
-          } else {
-            resetForm();
-          }
-        },
-        { immediate: true }
-    );
-
-    const validateEmail = (email) => /\S+@\S+\.\S+/.test(email);
-
+    // submit form data
     const handleSubmit = () => {
-      console.log('Saving user:', form.value);
-
-      if (!validateEmail(form.value.email)) {
+      if (!isValidEmail(form.value.email)) {
         emailError.value = true;
         return;
       }
+
       emailError.value = false;
 
       if (isEditMode.value) {
-        userStore.updateUser({ ...form.value });
-        toast.add({
-          severity: 'success',
-          summary: 'User updated',
-          life: 2000
-        });
+        userStore.updateUser({...form.value});
+        toast.add({severity: 'success', summary: 'User updated', life: 2000});
       } else {
-        userStore.addUser({ ...form.value });
-        toast.add({
-          severity: 'success',
-          summary: 'User created',
-          life: 2000
-        });
+        userStore.addUser({...form.value});
+        toast.add({severity: 'success', summary: 'User created', life: 2000});
       }
 
       closeDialog();
     };
 
+    // close the modal and reset form
     const closeDialog = () => {
-      userStore.setCurrentUser(null);
       emit('update:visible', false);
+      userStore.setCurrentUser(null);
       resetForm();
     };
 
     return {
       form,
-      handleSubmit,
-      closeDialog,
       emailError,
-      isEditMode
+      isEditMode,
+      handleSubmit,
+      closeDialog
     };
   }
 };
 </script>
 
 <template>
-  <PvDialog
+  <Modal
       :visible="visible"
       @update:visible="value => emit('update:visible', value)"
       :header="isEditMode ? 'Edit User' : 'New User'"
-      modal
-      class="w-11/12 md:w-6/12"
-      :closable="true"
       @hide="closeDialog"
-      >
+  >
     <form @submit.prevent="handleSubmit" class="flex flex-col gap-4">
-      <div>
+
+      <div class="input-group">
         <label for="name">Name</label>
-        <PvInputText v-model="form.name" id="name" required />
+        <PvInputText v-model="form.name" id="name" required/>
       </div>
 
-      <div>
+      <div class="input-group">
         <label for="username">Username</label>
-        <PvInputText v-model="form.username" id="username" required />
+        <PvInputText v-model="form.username" id="username" required/>
       </div>
 
-      <div>
+      <div class="input-group">
         <label for="email">Email</label>
-        <PvInputText v-model="form.email" id="email" required type="email" />
+        <PvInputText v-model="form.email" id="email" required type="email"/>
         <small v-if="emailError" class="text-red-500">Invalid Email</small>
       </div>
 
-      <div>
+      <div class="input-group">
         <label for="phone">Phone</label>
-        <PvInputText v-model="form.phone" id="phone" required />
+        <PvInputText v-model="form.phone" id="phone" required/>
       </div>
 
-      <div class="flex justify-end gap-2 mt-4">
-        <PvButton label="Cancel" severity="secondary" @click="closeDialog" />
-        <PvButton label="Save" type="submit" />
+      <div class="buttons">
+        <PvButton label="Cancel" severity="secondary" @click="closeDialog"/>
+        <PvButton label="Save" type="submit"/>
       </div>
     </form>
-  </PvDialog>
+  </Modal>
 </template>
 
 <style scoped>
 label {
   display: block;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
   font-weight: bold;
+}
+
+.input-group {
+  margin-bottom: 1rem;
+}
+
+.input-group input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
 }
 </style>

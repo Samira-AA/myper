@@ -5,6 +5,7 @@ import router from './router'
 import { createPinia } from 'pinia'
 import ToastService from 'primevue/toastservice'
 import ConfirmationService from 'primevue/confirmationservice'
+import './style.css'
 
 // PrimeVue Theme
 import Aura from '@primevue/themes/aura'

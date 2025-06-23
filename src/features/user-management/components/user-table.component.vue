@@ -1,81 +1,79 @@
 <script>
+import { ref, onMounted } from 'vue';
 import { useUserStore } from '../stores/user.store.js';
-import { useConfirm } from 'primevue/useconfirm';
 import { useToast } from 'primevue/usetoast';
-import {onMounted, ref} from 'vue';
-import UserForm from "./user-form.component.vue";
+import Modal from '../../../shared/modal.component.vue';
+import AppLoader from '../../../shared/app-loader.component.vue';
 
 export default {
   name: 'UserTable',
-  components: {UserForm},
-  setup() {
+  components: {
+    Modal,
+    AppLoader
+  },
+  emits: ['edit'],
+  setup(_, { emit }) {
     const userStore = useUserStore();
-    const confirm = useConfirm();
     const toast = useToast();
-    const formVisible = ref(false);
 
+    // for controlling delete confirmation modal
+    const deleteConfirmVisible = ref(false);
+
+    // to store the ID of the user to be deleted
+    const userIdToDelete = ref(null);
+
+    // load users on component mount
     onMounted(() => {
       userStore.getUsers();
-      console.log('users after api call', userStore.users);
     });
 
+    // emit edit event with user data for the parent component (user-form)
     const handleEdit = (user) => {
-      userStore.setCurrentUser(user);
-      formVisible.value = true;
+      emit('edit', user);
     };
 
-    const openCreateForm = () => {
-      userStore.setCurrentUser(null);
-      formVisible.value = true;
+    // open delete confirmation modal
+    const handleDelete = (id) => {
+      userIdToDelete.value = id;
+      deleteConfirmVisible.value = true;
     };
 
-
-    const handleDelete = (userId) => {
-      confirm.require({
-        message: 'Are you sure you want to delete this user?',
-        header: 'Confirmation',
-        icon: 'pi pi-exclamation-triangle',
-        accept: () => {
-          userStore.deleteUser(userId);
-          toast.add({
-            severity: 'success',
-            summary: 'Success',
-            detail: 'User deleted',
-            life: 3000
-          });
-        }
+    // confirm deletion
+    const confirmDelete = () => {
+      userStore.deleteUser(userIdToDelete.value);
+      toast.add({
+        severity: 'success',
+        summary: 'Success',
+        detail: 'User deleted',
+        life: 3000
       });
+      deleteConfirmVisible.value = false;
     };
 
     return {
       userStore,
-      formVisible,
       handleEdit,
-      openCreateForm,
-      handleDelete
+      handleDelete,
+      confirmDelete,
+      deleteConfirmVisible
     };
-  },
+  }
 };
 </script>
 
 <template>
-
-  <PvButton label="New user" icon="pi pi-plus" class="mb-3" @click="openCreateForm" />
-  <UserForm v-model:visible="formVisible" />
-
-
   <PvCard class="user-table-card">
     <template #title>List of Users</template>
     <template #content>
 
+      <!-- Show loader while fetching users -->
       <div v-if="userStore.loading" class="loading-state">
-        <PvProgressSpinner />
-        <p>Loading users...</p>
+        <AppLoader />
       </div>
 
-
+      <!-- Show error if loading fails -->
       <PvMessage v-else-if="userStore.error" severity="error" :closable="false">
-        Error loading users: {{ error }}
+        Error loading users: {{ userStore.error }}
       </PvMessage>
 
       <PvDataTable
@@ -83,19 +81,19 @@ export default {
           :value="userStore.users"
           :paginator="true"
           :rows="10"
-          :rowsPerPageOptions="[5,10,20]"
+          :rowsPerPageOptions="[5, 10, 20]"
           stripedRows
       >
-        <PvColumn field="name" header="Name" sortable></PvColumn>
-        <PvColumn field="username" header="Username" sortable></PvColumn>
-        <PvColumn field="email" header="Email" sortable>
+        <PvColumn field="name" header="NAME" sortable></PvColumn>
+        <PvColumn field="username" header="USERNAME" sortable></PvColumn>
+        <PvColumn field="email" header="EMAIL" sortable>
           <template #body="{ data }">
             <a :href="`mailto:${data.email}`">{{ data.email }}</a>
           </template>
         </PvColumn>
-        <PvColumn field="phone" header="Phone"></PvColumn>
+        <PvColumn field="phone" header="PHONE"></PvColumn>
 
-        <PvColumn header="Actions" :style="{ width: '150px' }">
+        <PvColumn header="ACTIONS" :style="{ width: '150px' }">
           <template #body="{ data }">
             <div class="action-buttons">
               <PvButton
@@ -127,13 +125,37 @@ export default {
     </template>
   </PvCard>
 
+  <!-- Delete confirmation modal -->
+  <Modal
+      :visible="deleteConfirmVisible"
+      header="Confirm Deletion"
+      @update:visible="deleteConfirmVisible = $event"
+  >
+    <div class="p-4">
+      <p>Are you sure you want to delete this user?</p>
+      <div class="buttons">
+        <PvButton label="Cancel" severity="secondary" @click="deleteConfirmVisible = false" />
+        <PvButton label="Yes, Delete" severity="danger" @click="confirmDelete" />
+      </div>
+    </div>
+  </Modal>
+
   <PvToast />
-  <PvConfirmDialog />
 </template>
 
 <style scoped>
 .user-table-card {
   margin: 1rem;
+  background-color: white;
+}
+
+.p-card-title {
+  display: flex;
+  text-align: start;
+  font-weight: bolder;
+  font-size: 1.2rem;
+  padding: 0.5rem;
+  color: #232d3a;
 }
 
 .loading-state {
@@ -156,5 +178,11 @@ export default {
 
 .p-message {
   margin: 1rem 0;
+}
+
+.buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
 }
 </style>
